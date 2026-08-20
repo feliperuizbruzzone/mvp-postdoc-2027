@@ -1,0 +1,47 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - 01-clase.qmd
+    - 02-grupos.qmd
+    - 03-mapa.qmd
+
+website:
+  title: "Estructura de la clase capitalista chilena"
+  description: "Hechos estilizados sobre la diferenciación del campo empresarial. Piloto, datos hasta 2019."
+  navbar:
+    left:
+      - href: index.qmd
+        text: Inicio
+      - href: 01-clase.qmd
+        text: "1. Estructura de clase"
+      - href: 02-grupos.qmd
+        text: "2. Grupos económicos"
+      - href: 03-mapa.qmd
+        text: "3. Mapa de la extrema riqueza"
+    right:
+      - icon: github
+        href: https://github.com/feliperuizbruzzone/mvp-postdoc-2027
+  page-footer:
+    center: "MVP postdoc 2027 · piloto · datos hasta 2019"
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-title: "En esta página"
+    fig-width: 8
+    fig-height: 5
+    fig-dpi: 150
+    code-fold: true
+    code-summary: "Ver código"
+    code-tools: false
+
+execute:
+  # Sin `freeze`. El cache de Quarto se invalida cuando cambia el .qmd, no cuando
+  # cambian los datos: al regenerar datos/indicadores.csv las páginas se habrían
+  # quedado con las cifras viejas. Acá siempre se re-ejecuta, que para un sitio de
+  # cuatro páginas cuesta menos de un minuto.
+  warning: false
+  message: false

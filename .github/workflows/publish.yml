@@ -1,0 +1,59 @@
+name: Publicar dash
+
+on:
+  push:
+    # Solo main: el entorno github-pages acepta despliegues unicamente desde la
+    # rama por defecto, asi que correr en otra rama construye pero no publica.
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      # Los paquetes van explícitos y no desde un DESCRIPTION porque el repo no
+      # es un paquete de R. RSPM sirve binarios para Ubuntu, así que instalar
+      # desde cero toma un par de minutos y no media hora.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::rmarkdown
+            any::knitr
+            any::tidyverse
+            any::scales
+            any::srvyr
+            any::ggrepel
+
+      - name: Renderizar
+        run: quarto render
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
