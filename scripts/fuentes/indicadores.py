@@ -1,5 +1,5 @@
 """
-MAPA — Indicadores anuales por empresa. Es el CSV que consume el dash.
+MAPA - Indicadores anuales por empresa. Es el CSV que consume el dash.
 
 ENTRADAS
     datos/xbrl_facts.csv     hechos crudos de parse_xbrl.py
@@ -351,7 +351,7 @@ def main() -> int:
         w.writerows(filas)
 
     anios = sorted({f["anio"] for f in filas})
-    print(f"\n{a.salida} — {len(filas)} filas, {anios[0]}-{anios[-1]}")
+    print(f"\n{a.salida} - {len(filas)} filas, {anios[0]}-{anios[-1]}")
     for empresa in sorted({f["empresa"] for f in filas}):
         aa = sorted({f["anio"] for f in filas if f["empresa"] == empresa})
         print(f"  {empresa:<13} {aa[0]}-{aa[-1]}  ({len(aa)} años)")

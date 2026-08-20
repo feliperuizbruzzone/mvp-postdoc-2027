@@ -17,7 +17,7 @@ $empresas = [ordered]@{
 }
 
 foreach ($rut in $empresas.Keys) {
-    Write-Host "`n=== $($empresas[$rut]) — RUT $rut ===" -ForegroundColor Cyan
+    Write-Host "`n=== $($empresas[$rut]) - RUT $rut ===" -ForegroundColor Cyan
     py scripts/fuentes/cmf_descarga.py eeff $rut --desde 2009 --hasta 2019 --docs xbrl
 }
 

@@ -1,5 +1,5 @@
 """
-MAPA — Extracción de hechos financieros desde los XBRL presentados a la CMF.
+MAPA - Extracción de hechos financieros desde los XBRL presentados a la CMF.
 
 Recorre un directorio de archivos .xbrl y emite un CSV tidy con un hecho por fila.
 Es el script que faltaba: CencoQuinenco.csv se había generado a mano, sin código
@@ -208,7 +208,7 @@ def escribir(filas: list[dict], salida: Path) -> None:
         w = csv.DictWriter(fh, fieldnames=CAMPOS)
         w.writeheader()
         w.writerows(filas)
-    print(f"\n{salida} — {len(filas)} filas")
+    print(f"\n{salida} - {len(filas)} filas")
 
 
 def self_check(directorio: Path, referencia: Path) -> int:

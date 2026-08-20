@@ -19,9 +19,10 @@ compilación publicada en Kaggle.
 la lista reporta a veces al patriarca, a veces a la sucesión completa y a veces a cada
 heredero por separado; tratarlos como personas distintas rompería la serie de cada
 grupo. Cuando en un año hay varios miembros de la misma familia, sus patrimonios se
-suman. La estimación de Forbes es una aproximación construida sobre participaciones
-accionarias observables y no una declaración patrimonial: sirve para ordenar y para
-identificar casos, no como medida exacta de riqueza.
+suman. La estimación de Forbes se construye sobre participaciones accionarias
+observables y tiene el estatuto de una aproximación. Su utilidad acá está en ordenar
+posiciones e identificar casos; para medir riqueza con precisión haría falta información
+patrimonial declarada.
 
 ```{r}
 #| label: forbes-datos
@@ -82,9 +83,9 @@ ggplot(por_familia, aes(year, net_worth, colour = familia)) +
 ```
 
 La serie está en dólares corrientes, así que los movimientos mezclan valorización
-bursátil real con efectos de precios y de tipo de cambio. No corresponde leerla como
-acumulación en términos reales: su utilidad acá es ordenar los casos, no medir la
-trayectoria.
+bursátil real con efectos de precios y de tipo de cambio. Leerla como acumulación en
+términos reales exigiría deflactarla. Sirve para ordenar los casos y para ubicar el
+momento en que cada familia entra al ranking.
 
 ## 2.2 Composición del ranking en `r ultimo`
 
@@ -103,10 +104,10 @@ chile |>
 
 ## 2.3 La serie completa
 
-La @tbl-forbes-serie da una fila por familia y una columna por año. Los guiones son años
-en que la familia no aparece en el ranking, no ceros: Forbes solo lista a quienes superan
-los mil millones de dólares, así que entrar y salir de la tabla es parte del dato y no un
-faltante de información.
+La @tbl-forbes-serie da una fila por familia y una columna por año. El guion marca los
+años en que la familia queda fuera del ranking. Forbes lista únicamente a quienes superan
+los mil millones de dólares, de modo que entrar y salir de la tabla forma parte del dato
+y tiene lectura sustantiva.
 
 ::: {.tabla-ancha}
 
@@ -115,8 +116,8 @@ faltante de información.
 #| tbl-cap: !expr 'sprintf("Patrimonio por familia y año. Chile, %s-%s. Miles de millones de dólares corrientes; el guion indica ausencia del ranking en ese año. Fuente: elaboración propia con base en el ranking Forbes de multimillonarios.", primero, ultimo)'
 por_familia |>
   mutate(net_worth = number(net_worth, accuracy = 0.1)) |>
-  pivot_wider(names_from = year, values_from = net_worth, values_fill = "—") |>
-  arrange(desc(as.numeric(na_if(.data[[as.character(ultimo)]], "—")))) |>
+  pivot_wider(names_from = year, values_from = net_worth, values_fill = "-") |>
+  arrange(desc(as.numeric(na_if(.data[[as.character(ultimo)]], "-")))) |>
   knitr::kable(align = c("l", rep("r", n_distinct(por_familia$year))))
 ```
 

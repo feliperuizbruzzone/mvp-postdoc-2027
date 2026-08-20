@@ -1,5 +1,5 @@
 """
-MAPA — Deflactor anual (IPC) para expresar los montos en pesos constantes.
+MAPA - Deflactor anual (IPC) para expresar los montos en pesos constantes.
 
 FUENTE Y POR QUÉ ESTE CAMINO
 
@@ -105,7 +105,7 @@ def main() -> int:
         w.writeheader()
         w.writerows(filas)
 
-    print(f"{a.salida} — {len(filas)} años ({min(anual)}-{max(anual)}), "
+    print(f"{a.salida} - {len(filas)} años ({min(anual)}-{max(anual)}), "
           f"pesos de diciembre {base}")
 
     # Self-check: la serie recuperada tiene que reproducir la inflación oficial.

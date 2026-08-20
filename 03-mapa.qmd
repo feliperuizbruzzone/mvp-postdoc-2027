@@ -110,6 +110,9 @@ Plot.plot({
   height: 460,
   marginLeft: 78,
   marginBottom: 44,
+  // Aire a la derecha para la etiqueta de cada serie, que se dibuja despues del
+  // ultimo punto. Sin esto el nombre de la empresa queda cortado por el borde.
+  marginRight: 120,
   x: {label: "Año", tickFormat: "d", grid: true},
   y: {
     label: esPorcentaje.has(indicador) ? "%"
@@ -134,7 +137,8 @@ Plot.plot({
                        `\nfuente: ${d.fuente}`}),
     Plot.text(
       serie.filter(d => d.anio === Math.max(...serie.map(x => x.anio))),
-      {x: "anio", y: "valor", text: "nombre", dx: 8, textAnchor: "start", fontSize: 10}
+      {x: "anio", y: "valor", text: "nombre", dx: 8, textAnchor: "start",
+       fontSize: 11, fontWeight: 600, fill: "nombre"}
     )
   ]
 })
@@ -193,7 +197,7 @@ ind |>
   )
 ```
 
-- **`xbrl`** — estados financieros presentados a la CMF, procesados por
+- **`xbrl`** - estados financieros presentados a la CMF, procesados por
   `scripts/fuentes/parse_xbrl.py`. Es la fuente primaria y la que llega más atrás.
 
 ## Definición de los indicadores
@@ -218,7 +222,7 @@ acumulado; los stocks (activos, patrimonio) al cierre de diciembre.
 ::: {.callout-note}
 ## Pendiente
 
-La productividad laboral en sentido estricto —valor agregado por trabajador— necesita la
+La productividad laboral en sentido estricto -valor agregado por trabajador- necesita la
 dotación de cada empresa, que no está en los tags XBRL y sí en las memorias anuales, en
 PDF y con un formato distinto por sociedad hasta que la NCG 461 lo uniformó en 2022. Por
 ahora la productividad se aproxima por el lado del capital, con la rotación de activos y

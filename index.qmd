@@ -51,8 +51,8 @@ entidad en la CMF. Ninguna requiere convenio ni acceso restringido.
 
 ## Qué falta
 
-Lo que este piloto deja demostrado es que la cadena completa —descarga, parseo, armado
-de indicadores y publicación— corre sola y es reproducible desde el repositorio. Lo que
+Lo que este piloto deja demostrado es que la cadena completa -descarga, parseo, armado
+de indicadores y publicación- corre sola y es reproducible desde el repositorio. Lo que
 queda pendiente es el alcance:
 
 - **Ampliar el intervalo temporal** de 2000 a la actualidad. Hoy la ventana financiera es

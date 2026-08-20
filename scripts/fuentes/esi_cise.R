@@ -1,4 +1,4 @@
-# CLASE — Fuerza de trabajo ocupada según categoría en el empleo (CISE), ESI 2010-2024.
+# CLASE - Fuerza de trabajo ocupada según categoría en el empleo (CISE), ESI 2010-2024.
 #
 # Fuente: microdatos ESI (INE). Los años 2010-2023 vienen ya procesados en
 # datos/esi/processedESI.RData (objeto datos_completosFE), calculados con
@@ -94,7 +94,7 @@ dir.create("datos", showWarnings = FALSE)
 write_csv(serie, "datos/cise.csv")
 
 message(sprintf(
-  "datos/cise.csv — %d filas, %d-%d, categorías: %s",
+  "datos/cise.csv - %d filas, %d-%d, categorías: %s",
   nrow(serie), min(serie$anio), max(serie$anio),
   paste(sort(unique(serie$categoria)), collapse = ", ")
 ))

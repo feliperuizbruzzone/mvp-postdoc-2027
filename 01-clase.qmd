@@ -32,9 +32,9 @@ etiquetas <- cise |> filter(anio %in% unique(c(2010, 2015, CORTE)))
 
 ### Evolución absoluta
 
-La @fig-cise-absoluto muestra el volumen de cada categoría en el empleo. El interés no
-está en su crecimiento, que sigue al de la fuerza de trabajo en conjunto, sino en la
-distancia de magnitud entre la categoría de empleadores y el resto.
+La @fig-cise-absoluto muestra el volumen de cada categoría en el empleo. Las tres crecen
+al ritmo de la fuerza de trabajo en conjunto. Lo que interesa acá es la distancia de
+magnitud que separa a la categoría de empleadores del resto.
 
 ```{r}
 #| label: fig-cise-absoluto
@@ -68,9 +68,9 @@ La proporción de empleadores pasa de
 en 2010 a
 `r percent(cise$proporcion[cise$anio == ultimo_cise & cise$categoria == "Empleador"], accuracy = 0.1)`
 en `r ultimo_cise`, mientras el trabajo asalariado se sostiene en torno a tres cuartos de
-la población ocupada (@fig-cise-area). La estabilidad de la estructura es el hallazgo:
-la categoría que concentra la propiedad de los medios de producción no crece, lo que
-desplaza la pregunta desde su tamaño hacia su composición interna.
+la población ocupada (@fig-cise-area). La estructura se mantiene estable durante toda la
+década. La categoría que concentra la propiedad de los medios de producción conserva su
+peso, y eso desplaza la pregunta hacia su composición interna.
 
 ## 1.2 Distribución de empresas según personalidad jurídica
 
@@ -127,10 +127,10 @@ ggplot(tipo, aes(anio, empresas, fill = tipo)) +
   labs(x = "Año comercial", y = "Participación en el total", fill = NULL)
 ```
 
-La personalidad jurídica separa dos regímenes de propiedad: la empresa individual, donde
-patrimonio personal y patrimonio de la empresa no están separados, y la sociedad, que sí
-los separa y admite propiedad fraccionada y transferible. Es la condición formal de la
-concentración que documenta la sección siguiente.
+La personalidad jurídica separa dos regímenes de propiedad. En la empresa individual el
+patrimonio personal responde por el de la empresa. La sociedad los separa y admite
+propiedad fraccionada y transferible, que es la condición formal de la concentración
+documentada en la sección siguiente.
 
 ## 1.3 Organización de la propiedad
 

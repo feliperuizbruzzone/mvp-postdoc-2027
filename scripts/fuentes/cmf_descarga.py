@@ -1,5 +1,5 @@
 """
-MAPA — Descarga de documentos de la CMF por RUT.
+MAPA - Descarga de documentos de la CMF por RUT.
 
 REEMPLAZA A CMFScraper.py, que usaba Selenium con XPaths fijos y guardaba
 `page_source` dentro de un archivo .zip (o sea, HTML en vez del binario). Acá no
@@ -183,7 +183,7 @@ def cmd_registro(a) -> int:
 
 def cmd_listar(a) -> int:
     s = sesion()
-    print(f"RUT {a.rut} — pestañas con contenido:")
+    print(f"RUT {a.rut} - pestañas con contenido:")
     for nombre, n in PESTANAS.items():
         r = s.get(url_ficha(a.rut, n), timeout=60)
         time.sleep(a.pausa)
@@ -383,7 +383,7 @@ def main() -> int:
     if not a.rut:
         p.error(f"el comando {a.comando} necesita un RUT")
 
-    print(f"CMF — RUT {a.rut}, comando {a.comando}")
+    print(f"CMF - RUT {a.rut}, comando {a.comando}")
     if a.comando == "listar":
         return cmd_listar(a)
     if a.comando == "eeff":
