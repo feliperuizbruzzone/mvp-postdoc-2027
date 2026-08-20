@@ -1,19 +1,18 @@
 # Render
 _site/
-_site-publico/
-_site-completo/
 .quarto/
+/.quarto/
 *_files/
 *_cache/
+_freeze/
 
 # Secretos
 .env
 .env.*
-!.env.example
 
-# Datos crudos: pesados y reproducibles con scripts/fuentes/ (1,5 GB entre los dos)
-datos/xbrl/
+# Crudos de la CMF: cientos de MB y se rebajan con scripts/bajar_todo.ps1
 datos/cmf/
+datos/xbrl/
 datos/xbrl_facts.csv
 
 # R
@@ -30,28 +29,3 @@ __pycache__/
 # Sistema
 .DS_Store
 Thumbs.db
-
-/.quarto/
-
-# Cache de Quarto: se descarta a proposito, ver _quarto.yml
-_freeze/
-
-# Firebase
-.firebase/
-firebase-debug.log
-
-# Cache de texto de las memorias: 850 KB, se rehace con --cachear
-datos/cmf/_dotacion_cache.json
-
-# Notas de trabajo de Javier: no van al repo compartido.
-# notas/ transcribe los audios de Felipe palabra por palabra, y CURRENT_TASK /
-# WORKLOG / PLAN estan escritos como recordatorios para mi, no como documentacion
-# del proyecto.
-notas/
-CURRENT_TASK.md
-WORKLOG.md
-PLAN.md
-
-# Despliegue del perfil `completo` en Firebase, que es privado y no de este repo.
-firebase.json
-.firebaserc
