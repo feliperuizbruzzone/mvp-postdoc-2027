@@ -1,0 +1,136 @@
+/*-- scss:defaults --*/
+
+// Ajustes sobre cosmo. La idea es que se lea mejor, no que parezca otra cosa:
+// esto es un piloto y tiene que verse como un piloto.
+
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, sans-serif !default;
+
+$primary: #003f88 !default;   // el azul que ya usan los gráficos de patrimonio
+$body-color: #23282d !default;
+$body-bg: #ffffff !default;
+$link-color: #003f88 !default;
+
+$font-size-base: 1.02rem !default;
+$headings-font-weight: 600 !default;
+
+$table-border-color: #e4e7ea !default;
+$table-striped-bg: #f7f8f9 !default;
+
+/*-- scss:rules --*/
+
+body {
+  // Un pelo más de aire entre líneas: los párrafos son largos.
+  line-height: 1.65;
+}
+
+main {
+  // Medida de lectura. Sin esto, en pantallas anchas la prosa cruza 200
+  // caracteres por línea y se vuelve incómoda.
+  max-width: 62rem;
+}
+
+h1, h2, h3 { letter-spacing: -0.01em; }
+
+h2 {
+  margin-top: 2.6rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #e4e7ea;
+}
+
+h3 { margin-top: 1.8rem; }
+
+.navbar { border-bottom: 1px solid #e4e7ea; }
+
+// Tablas: el default de Bootstrap deja las celdas muy sueltas para tablas de
+// puros números.
+table {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+table thead th {
+  border-bottom: 2px solid #d6dade;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+table td, table th { padding: 0.4rem 0.6rem; }
+
+// Tablas anchas: scrollean solas en vez de romper el ancho de la página.
+.tabla-ancha {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.tabla-ancha table { margin-bottom: 0; }
+
+.tabla-ancha thead th:first-child,
+.tabla-ancha tbody td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  white-space: nowrap;
+}
+
+// Pie de la figura interactiva: no puede ser un fig-cap porque la genera OJS,
+// asi que se emula el mismo tratamiento visual.
+.figura-nota {
+  color: #5b646c;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0.25rem 0 1.75rem;
+  padding-left: 0.9rem;
+  border-left: 3px solid #e4e7ea;
+}
+
+// Pies de figura y de tabla.
+figcaption, caption, .figure-caption {
+  color: #5b646c;
+  font-size: 0.85rem;
+}
+
+// Los controles de la sección interactiva, lado a lado y separados del gráfico.
+.panel-controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  align-items: flex-start;
+  padding: 1rem 1.15rem;
+  background: #f7f8f9;
+  border: 1px solid #e4e7ea;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.panel-controles form { margin-bottom: 0; }
+
+// Enlaces de descarga: se leen como acciones, no como texto corrido.
+.descargas a {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  margin-right: 0.4rem;
+  border: 1px solid #ccd2d8;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.descargas a:hover { background: #f0f2f4; border-color: #003f88; }
+
+// Tarjetas de la portada.
+.grid h3 { margin-top: 0; }
+
+.grid .g-col-md-4 {
+  padding: 1.1rem 1.2rem;
+  border: 1px solid #e4e7ea;
+  border-radius: 4px;
+  background: #fcfcfd;
+}
+
+.grid .g-col-md-4 h3 { font-size: 1.12rem; }
+
+// Nota de alcance de la portada.
+.callout { margin: 1.5rem 0; }
+
+footer.footer { color: #6b747c; font-size: 0.85rem; }

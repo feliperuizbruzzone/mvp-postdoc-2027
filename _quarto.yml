@@ -26,11 +26,27 @@ website:
   page-footer:
     center: "MVP postdoc 2027 · piloto · datos hasta 2019"
 
+# Convenciones de referencia cruzada. Sin esto Quarto rotula en inglés y los
+# `@fig-` del texto salen como "Figure 1".
+lang: es
+
+crossref:
+  fig-title: "Figura"
+  tbl-title: "Tabla"
+  fig-prefix: "figura"
+  tbl-prefix: "tabla"
+  title-delim: "."
+
 format:
   html:
-    theme: cosmo
+    theme: [cosmo, estilo.scss]
     toc: true
     toc-title: "En esta página"
+    toc-depth: 3
+    number-sections: false
+    fig-align: center
+    tbl-cap-location: top
+    fig-cap-location: bottom
     fig-width: 8
     fig-height: 5
     fig-dpi: 150

@@ -3,18 +3,28 @@ title: "2. Principales grupos económicos"
 subtitle: "Ranking de riqueza para identificar los grupos más relevantes"
 ---
 
-```{r setup}
+```{r}
+#| label: setup
 #| include: false
 source("R/setup.R")
 ```
 
-Ranking Forbes de multimillonarios, serie histórica. La nacionalidad se toma de
-`country_of_citizenship`, y los nombres individuales se agrupan por apellido familiar
-porque la lista reporta a veces al patriarca, a veces a la sucesión completa y a veces
-a cada heredero por separado — tratarlos como personas distintas rompería la serie de
-cada grupo.
+**Fuente:** ranking Forbes de multimillonarios, serie histórica 1997-2023, en la
+compilación publicada en Kaggle.
+**Universo:** personas con patrimonio neto estimado superior a mil millones de dólares.
+**Recorte:** nacionalidad chilena según `country_of_citizenship`, años 2000 a `r CORTE`.
+**Unidad:** miles de millones de dólares corrientes.
 
-```{r forbes-datos}
+**Nota metodológica.** Los nombres individuales se agrupan por apellido familiar porque
+la lista reporta a veces al patriarca, a veces a la sucesión completa y a veces a cada
+heredero por separado; tratarlos como personas distintas rompería la serie de cada
+grupo. Cuando en un año hay varios miembros de la misma familia, sus patrimonios se
+suman. La estimación de Forbes es una aproximación construida sobre participaciones
+accionarias observables y no una declaración patrimonial: sirve para ordenar y para
+identificar casos, no como medida exacta de riqueza.
+
+```{r}
+#| label: forbes-datos
 #| include: false
 forbes <- readr::read_csv(
   "datos/kaggle/forbes/all_billionaires_1997_2023.csv",
@@ -37,7 +47,9 @@ forbes <- readr::read_csv(
     )
   )
 
-chile <- forbes |> filter(country_of_citizenship == "Chile", year >= 2000) |> recortar("year")
+chile <- forbes |>
+  filter(country_of_citizenship == "Chile", year >= 2000) |>
+  recortar("year")
 
 # Una fila por familia y año: cuando la lista reporta a varios miembros de la
 # misma familia por separado, se suman.
@@ -45,51 +57,71 @@ por_familia <- chile |>
   group_by(year, familia) |>
   summarise(net_worth = sum(net_worth, na.rm = TRUE), .groups = "drop")
 
+primero <- min(chile$year)
 ultimo <- max(chile$year)
+n_familias <- n_distinct(chile$familia)
 stopifnot(!any(is.na(chile$familia)))  # ningún nombre chileno sin recodificar
 ```
 
-## 2.1 Evolución de la riqueza de los grupos, `r min(chile$year)`-`r ultimo`
+En el período aparecen `r n_familias` familias chilenas en el ranking, entre
+`r primero` y `r ultimo`.
 
-```{r forbes-evolucion}
-#| fig-cap: "Riqueza de las familias chilenas en el ranking Forbes, en miles de millones de USD corrientes."
+## 2.1 Evolución de la riqueza de los grupos
+
+```{r}
+#| label: fig-forbes-evolucion
+#| fig-cap: !expr 'sprintf("Patrimonio de las familias chilenas presentes en el ranking Forbes. %s-%s. Miles de millones de dólares corrientes; los tramos sin línea corresponden a años en que la familia no figura en el ranking. Fuente: elaboración propia con base en el ranking Forbes de multimillonarios.", primero, ultimo)'
 #| fig-width: 9
 #| fig-height: 5.5
 ggplot(por_familia, aes(year, net_worth, colour = familia)) +
-  geom_line(linewidth = 0.8) +
-  geom_point(size = 1.2) +
+  geom_line(linewidth = 0.7) +
+  geom_point(size = 1.3) +
   anios +
-  scale_y_continuous(labels = label_dollar(suffix = " MMM")) +
-  labs(
-    x = "Año", y = "Riqueza (USD miles de millones)", colour = "Familia:",
-    caption = "Elaboración propia con base en el ranking Forbes."
-  ) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  scale_y_continuous(labels = label_dollar(suffix = " MMM"), limits = c(0, NA)) +
+  labs(x = NULL, y = "Patrimonio (USD miles de millones)", colour = NULL)
 ```
 
-La serie es de dólares corrientes, así que los saltos mezclan valorización bursátil
-real con efectos de precios y de tipo de cambio.
+La serie está en dólares corrientes, así que los movimientos mezclan valorización
+bursátil real con efectos de precios y de tipo de cambio. No corresponde leerla como
+acumulación en términos reales: su utilidad acá es ordenar los casos, no medir la
+trayectoria.
 
-## 2.2 Composición del ranking
+## 2.2 Composición del ranking en `r ultimo`
 
-```{r forbes-tabla}
-#| tbl-cap: "Multimillonarios chilenos en el ranking Forbes, último año de la serie."
+```{r}
+#| label: tbl-forbes-ultimo
+#| tbl-cap: !expr 'sprintf("Personas de nacionalidad chilena en el ranking Forbes de multimillonarios. %s. Posición global, patrimonio estimado en miles de millones de dólares corrientes y rubro principal. Fuente: elaboración propia con base en el ranking Forbes de multimillonarios.", ultimo)'
 chile |>
   filter(year == ultimo) |>
   arrange(rank) |>
   select(full_name, rank, net_worth, business_category) |>
-  knitr::kable(col.names = c("Nombre", "Rank global", "Riqueza (USD MMM)", "Rubro"))
+  knitr::kable(
+    align = c("l", "r", "r", "l"),
+    col.names = c("Nombre", "Posición global", "Patrimonio (USD MMM)", "Rubro")
+  )
 ```
 
-```{r forbes-comparacion}
-#| tbl-cap: "Riqueza por familia: primer y último año con dato en la serie."
+## 2.3 La serie completa
+
+La @tbl-forbes-serie da una fila por familia y una columna por año. Los guiones son años
+en que la familia no aparece en el ranking, no ceros: Forbes solo lista a quienes superan
+los mil millones de dólares, así que entrar y salir de la tabla es parte del dato y no un
+faltante de información.
+
+::: {.tabla-ancha}
+
+```{r}
+#| label: tbl-forbes-serie
+#| tbl-cap: !expr 'sprintf("Patrimonio por familia y año. Chile, %s-%s. Miles de millones de dólares corrientes; el guion indica ausencia del ranking en ese año. Fuente: elaboración propia con base en el ranking Forbes de multimillonarios.", primero, ultimo)'
 por_familia |>
-  filter(year %in% c(min(year), ultimo)) |>
-  pivot_wider(names_from = year, values_from = net_worth) |>
-  arrange(desc(.data[[as.character(ultimo)]])) |>
-  knitr::kable()
+  mutate(net_worth = number(net_worth, accuracy = 0.1)) |>
+  pivot_wider(names_from = year, values_from = net_worth, values_fill = "—") |>
+  arrange(desc(as.numeric(na_if(.data[[as.character(ultimo)]], "—")))) |>
+  knitr::kable(align = c("l", rep("r", n_distinct(por_familia$year))))
 ```
 
-Las familias con presencia en el ranking son el punto de entrada a la sección 3: de
-aquí salen los casos cuya información financiera a nivel de empresa se rastrea en la
-CMF.
+:::
+
+Las familias con presencia sostenida en el ranking son el punto de entrada a la sección
+3: de aquí salen los casos cuya información financiera a nivel de empresa se rastrea en
+los registros de la Comisión para el Mercado Financiero.

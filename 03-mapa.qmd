@@ -13,17 +13,35 @@ en vez del código: la página queda con los controles pero sin gráfico, y sin
 ningún error ni en consola ni en la página. Da igual si la opción va por celda
 (`//| echo: false`) o en el front matter (`execute: echo`). El resto de las
 celdas {r} sí respetan `echo: false` con normalidad.
+
+El selector es descendente y no de hijo directo a propósito: Quarto envuelve el
+bloque en un `.code-copy-outer-scaffold` intermedio, así que `.cell > .sourceCode`
+dejó de matchear y el código quedaba a la vista. Todas las celdas {r} de esta
+página van con `echo: false`, así que no hay nada más que ocultar acá.
 -->
 <style>
-  .cell > .sourceCode, .cell > details > .sourceCode { display: none; }
+  .cell .sourceCode { display: none; }
 </style>
 ```
 
-Evolución financiera de las sociedades controladas por los grupos identificados en la
-sección 2. Selecciona empresas y variable para comparar, y descarga la base con lo que
-tengas seleccionado.
+**Fuente:** estados financieros consolidados presentados a la Comisión para el Mercado
+Financiero (CMF) en formato XBRL, ejercicios `r 2009` a `r 2019`.
+**Universo:** sociedades anónimas abiertas inscritas en el Registro de Valores,
+controladas por los grupos identificados en la sección 2.
+**Unidad:** pesos chilenos de diciembre de 2025 para los montos, razones para los
+indicadores derivados.
+**Deflactor:** IPC empalmado del Banco Central de Chile.
 
-```{r datos}
+**Nota metodológica.** Los flujos (ingresos, utilidad) corresponden al ejercicio anual
+acumulado y los stocks (activos, patrimonio) al cierre de diciembre. Se toman solo las
+cifras consolidadas sin apertura por dimensión: sumar las aperturas por segmento junto al
+total duplicaría los montos.
+
+Esta es la única sección interactiva. Selecciona empresas y variable para comparar, y
+descarga la serie con lo que tengas en pantalla.
+
+```{r}
+#| label: datos
 #| include: false
 source("R/setup.R")
 
@@ -35,10 +53,14 @@ ind <- readr::read_csv("datos/indicadores.csv", show_col_types = FALSE) |>
 # disco, que con fetch() no pasaba.
 stopifnot(nrow(ind) > 0)
 ojs_define(ind_raw = ind)
+# La misma paleta que los graficos de R, para que las dos mitades del sitio se
+# lean como una sola.
+ojs_define(paleta_raw = PALETA)
 ```
 
 ```{ojs}
 datos = transpose(ind_raw)
+paleta = Array.isArray(paleta_raw) ? paleta_raw : [paleta_raw]
 
 empresas = [...new Set(datos.map(d => d.nombre))].sort()
 
@@ -60,6 +82,8 @@ esPorcentaje = new Set(["margen_bruto", "margen_neto", "roa", "roe"])
 esMonto = new Set(["patrimonio_real", "patrimonio", "activos", "ingresos", "utilidad"])
 ```
 
+::: {.panel-controles}
+
 ```{ojs}
 viewof seleccion = Inputs.checkbox(empresas, {
   label: "Empresas",
@@ -73,6 +97,8 @@ viewof indicador = Inputs.select(indicadores, {
   value: "patrimonio_real"
 })
 ```
+
+:::
 
 ```{ojs}
 serie = datos.filter(d => d.indicador === indicador && seleccion.includes(d.nombre))
@@ -94,9 +120,9 @@ Plot.plot({
               : esMonto.has(indicador) ? (d => (d / 1e12).toFixed(1))
               : (d => d.toFixed(2))
   },
-  color: {legend: true},
+  color: {legend: true, range: paleta},
   marks: [
-    Plot.ruleY([0], {stroke: "#999"}),
+    Plot.ruleY([0], {stroke: "#ced4da"}),
     Plot.lineY(serie, {x: "anio", y: "valor", stroke: "nombre", strokeWidth: 2}),
     Plot.dot(serie, {x: "anio", y: "valor", fill: "nombre", r: 3,
                      title: d => `${d.nombre} ${d.anio}\n` +
@@ -129,21 +155,30 @@ descargar = (filas, nombre) => htl.html`<a download=${nombre}
   href=${URL.createObjectURL(new Blob([aCsv(filas)], {type: "text/csv;charset=utf-8"}))}
   >${nombre}</a>`
 
-htl.html`<p style="margin:1rem 0">Descargar:
-  ${descargar(serie, "seleccion.csv")} ·
-  ${descargar(datos.filter(d => seleccion.includes(d.nombre)), "empresas-seleccionadas.csv")} ·
+htl.html`<p class="descargas"><strong>Descargar:</strong>
+  ${descargar(serie, "seleccion.csv")}
+  ${descargar(datos.filter(d => seleccion.includes(d.nombre)), "empresas-seleccionadas.csv")}
   ${descargar(datos, "indicadores.csv")}
 </p>`
 ```
 
-Los estados financieros cubren la década 2009-2019 para las dos sociedades trabajadas
-en la tesis. Extender el intervalo y sumar el resto de los grupos económicos es
-justamente el objeto del proyecto.
+::: {.figura-nota}
+**Figura interactiva.** Evolución de la variable seleccionada para las sociedades
+seleccionadas. Chile, 2009-2019. Montos en pesos de diciembre de 2025 e indicadores
+derivados expresados como razón o porcentaje según corresponda. Fuente: elaboración
+propia con base en los estados financieros presentados a la CMF en formato XBRL.
+:::
+
+Los estados financieros cubren la década 2009-2019 para las dos sociedades trabajadas en
+la tesis. Extender el intervalo y sumar el resto de los grupos económicos es justamente
+el objeto del proyecto.
 
 ## Cobertura y procedencia
 
-```{r cobertura}
+```{r}
+#| label: tbl-cobertura
 #| echo: false
+#| tbl-cap: "Cobertura temporal de la serie financiera por sociedad. Chile, 2009-2019. Primer y último ejercicio con información, número de ejercicios y procedencia del dato. Fuente: elaboración propia con base en los estados financieros presentados a la CMF en formato XBRL."
 ind |>
   summarise(
     desde = min(anio), hasta = max(anio),
@@ -152,13 +187,19 @@ ind |>
     .by = c(nombre, grupo)
   ) |>
   arrange(grupo, nombre) |>
-  knitr::kable(col.names = c("Empresa", "Grupo", "Desde", "Hasta", "Años", "Fuente"))
+  knitr::kable(
+    align = c("l", "l", "r", "r", "r", "l"),
+    col.names = c("Empresa", "Grupo", "Desde", "Hasta", "Ejercicios", "Fuente")
+  )
 ```
 
 - **`xbrl`** — estados financieros presentados a la CMF, procesados por
   `scripts/fuentes/parse_xbrl.py`. Es la fuente primaria y la que llega más atrás.
 
 ## Definición de los indicadores
+
+: Definición operacional de los indicadores. Numerador y denominador corresponden a
+etiquetas de la taxonomía IFRS tal como las presenta cada sociedad. {#tbl-definiciones}
 
 | Indicador | Cálculo | Lectura |
 |---|---|---|

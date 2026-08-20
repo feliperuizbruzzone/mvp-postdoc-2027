@@ -11,62 +11,71 @@ muestra la información financiera de las empresas que controlan.
 
 ::: {.g-col-12 .g-col-md-4}
 ### [1. Estructura de clase](01-clase.qmd)
-Fuerza de trabajo ocupada según categoría en el empleo (ESI), distribución de empresas
-según personalidad jurídica (SII) y organización de la propiedad con análisis de
-correspondencias múltiples (ELE).
+Población ocupada según categoría en el empleo (ESI), distribución de empresas según
+personalidad jurídica (SII) y organización de la propiedad con análisis de
+correspondencias múltiples (ELE 2019).
 :::
 
 ::: {.g-col-12 .g-col-md-4}
 ### [2. Grupos económicos](02-grupos.qmd)
 Ranking Forbes de multimillonarios chilenos, agrupado por familia, para identificar los
-grupos más relevantes.
+grupos más relevantes y su trayectoria.
 :::
 
 ::: {.g-col-12 .g-col-md-4}
 ### [3. Mapa de la extrema riqueza](03-mapa.qmd)
 Información financiera a nivel de empresa (CMF/XBRL): patrimonio, márgenes, retornos y
-productividad. Selección interactiva de empresas y variables, con descarga de los datos.
+productividad del capital. Selección interactiva y descarga de los datos.
 :::
 
 :::
 
-## Alcance de este piloto
+## Alcance
 
 Todas las series terminan en **2019**, el corte del análisis de la tesis doctoral, y la
 sección 3 cubre solo los dos casos trabajados ahí: **Quiñenco (Luksic)** y **Cencosud
 (Paulmann)**, con estados financieros de 2009 a 2019.
 
-| Sección | Fuente | Cobertura |
-|---|---|---|
-| 1.1 | ESI, INE (microdatos) | 2010-2019 |
-| 1.2 | SII, estadísticas de empresas | 2005-2019 |
-| 1.3 | ELE 2019 | 2019 |
-| 2 | Ranking Forbes | 2000-2019 |
-| 3 | CMF/XBRL | 2009-2019 |
+| Sección | Fuente | Cobertura | Naturaleza |
+|---|---|---|---|
+| 1.1 | Encuesta Suplementaria de Ingresos, INE | 2010-2019 | Muestral, ponderada |
+| 1.2 | Estadísticas de empresas, SII | 2005-2019 | Registro administrativo |
+| 1.3 | Encuesta Longitudinal de Empresas (ELE-6) | 2019 | Muestral, ponderada |
+| 2 | Ranking Forbes de multimillonarios | 2000-2019 | Estimación de terceros |
+| 3 | Estados financieros XBRL, CMF | 2009-2019 | Registro obligatorio |
+
+: Fuentes por sección, cobertura temporal y naturaleza del dato. {#tbl-fuentes}
+
+Las cuatro primeras son de acceso público y la quinta se descarga de la ficha de cada
+entidad en la CMF. Ninguna requiere convenio ni acceso restringido.
 
 ## Qué falta
 
-Lo que este piloto deja demostrado es que la cadena completa —descarga, parseo,
-armado de indicadores y publicación— corre sola y es reproducible. Lo que queda
-pendiente es justamente el alcance:
+Lo que este piloto deja demostrado es que la cadena completa —descarga, parseo, armado
+de indicadores y publicación— corre sola y es reproducible desde el repositorio. Lo que
+queda pendiente es el alcance:
 
-- **Ampliar el intervalo temporal** de 2000 a la actualidad. Hoy la ventana financiera
-  es la década 2009-2019 porque es lo que cubre el XBRL descargado.
+- **Ampliar el intervalo temporal** de 2000 a la actualidad. Hoy la ventana financiera es
+  la década 2009-2019 porque es lo que cubre el XBRL descargado.
 - **Ampliar los casos.** La tesis trabajó dos grupos; el proyecto propone extender el
   mapa al conjunto de los principales grupos económicos del país.
 - **Productividad laboral.** El valor agregado por trabajador necesita la dotación de
-  cada empresa, que no está en los tags XBRL estándar y sí en las memorias anuales:
-  requiere extracción sobre PDF, con OCR en los años sin capa de texto.
+  cada empresa, que no está en las etiquetas XBRL estándar y sí en las memorias anuales,
+  en PDF y con formato distinto por sociedad hasta que la NCG 461 lo uniformó en 2022.
 - **Perímetro societario y propiedad.** Accionistas, directorios y filiales año a año,
   para medir control efectivo y no solo participación del mayor accionista.
-- **Textos.** Las secciones están armadas con la lectura mínima de cada gráfico; la
-  interpretación sustantiva es trabajo del proyecto.
+- **Interpretación sustantiva.** Las secciones traen la lectura mínima de cada gráfico;
+  el análisis es trabajo del proyecto.
 
 ## Reproducibilidad
 
 Todo el procesamiento corre desde `scripts/fuentes/`. Cada script documenta su
-metodología en la cabecera y escribe a `datos/`. El sitio se arma con Quarto:
+metodología en la cabecera, incorpora sus propios chequeos y escribe a `datos/`. El sitio
+se arma con Quarto:
 
 ```powershell
-quarto render --profile publico
+quarto render
 ```
+
+El código de cada figura y cada tabla está disponible en la página, plegado bajo "Ver
+código".
