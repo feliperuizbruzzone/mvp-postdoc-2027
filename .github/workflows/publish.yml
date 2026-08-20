@@ -2,7 +2,9 @@ name: Publicar dash
 
 on:
   push:
-    branches: [main, dash-mvp]
+    # Solo main: el entorno github-pages acepta despliegues unicamente desde la
+    # rama por defecto, asi que correr en otra rama construye pero no publica.
+    branches: [main]
   workflow_dispatch:
 
 permissions:
