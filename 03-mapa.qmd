@@ -1,0 +1,185 @@
+---
+title: "3. Mapa actual de la extrema riqueza"
+subtitle: "Información financiera a nivel de empresa (CMF/XBRL)"
+code-fold: false
+---
+
+```{=html}
+<!--
+El código de las celdas {ojs} se oculta con CSS y no con `echo: false`.
+
+En esta versión de Quarto, `echo: false` sobre una celda {ojs} suprime la SALIDA
+en vez del código: la página queda con los controles pero sin gráfico, y sin
+ningún error ni en consola ni en la página. Da igual si la opción va por celda
+(`//| echo: false`) o en el front matter (`execute: echo`). El resto de las
+celdas {r} sí respetan `echo: false` con normalidad.
+-->
+<style>
+  .cell > .sourceCode, .cell > details > .sourceCode { display: none; }
+</style>
+```
+
+Evolución financiera de las sociedades controladas por los grupos identificados en la
+sección 2. Selecciona empresas y variable para comparar, y descarga la base con lo que
+tengas seleccionado.
+
+```{r datos}
+#| include: false
+source("R/setup.R")
+
+ind <- readr::read_csv("datos/indicadores.csv", show_col_types = FALSE) |>
+  filter(anio >= DESDE, anio <= HASTA)
+
+# Los datos viajan embebidos en la página con ojs_define en vez de leerse con
+# FileAttachment: así la página funciona también abierta con doble clic desde el
+# disco, que con fetch() no pasaba.
+stopifnot(nrow(ind) > 0)
+ojs_define(ind_raw = ind)
+```
+
+```{ojs}
+datos = transpose(ind_raw)
+
+empresas = [...new Set(datos.map(d => d.nombre))].sort()
+
+indicadores = new Map([
+  ["Patrimonio (pesos de dic. 2025)", "patrimonio_real"],
+  ["Patrimonio (pesos corrientes)",   "patrimonio"],
+  ["Activos totales",                 "activos"],
+  ["Ingresos",                        "ingresos"],
+  ["Utilidad",                        "utilidad"],
+  ["Margen de utilidad bruta",        "margen_bruto"],
+  ["Margen de utilidad neta",         "margen_neto"],
+  ["Retorno sobre activos (ROA)",     "roa"],
+  ["Retorno sobre patrimonio (ROE)",  "roe"],
+  ["Rotación de activos",             "rotacion_activos"],
+  ["Excedente sobre capital",         "excedente_capital"]
+])
+
+esPorcentaje = new Set(["margen_bruto", "margen_neto", "roa", "roe"])
+esMonto = new Set(["patrimonio_real", "patrimonio", "activos", "ingresos", "utilidad"])
+```
+
+```{ojs}
+viewof seleccion = Inputs.checkbox(empresas, {
+  label: "Empresas",
+  value: empresas
+})
+```
+
+```{ojs}
+viewof indicador = Inputs.select(indicadores, {
+  label: "Variable",
+  value: "patrimonio_real"
+})
+```
+
+```{ojs}
+serie = datos.filter(d => d.indicador === indicador && seleccion.includes(d.nombre))
+```
+
+```{ojs}
+Plot.plot({
+  width: 860,
+  height: 460,
+  marginLeft: 78,
+  marginBottom: 44,
+  x: {label: "Año", tickFormat: "d", grid: true},
+  y: {
+    label: esPorcentaje.has(indicador) ? "%"
+         : esMonto.has(indicador) ? "Billones de pesos"
+         : "Veces",
+    grid: true,
+    tickFormat: esPorcentaje.has(indicador) ? (d => (d * 100).toFixed(0) + "%")
+              : esMonto.has(indicador) ? (d => (d / 1e12).toFixed(1))
+              : (d => d.toFixed(2))
+  },
+  color: {legend: true},
+  marks: [
+    Plot.ruleY([0], {stroke: "#999"}),
+    Plot.lineY(serie, {x: "anio", y: "valor", stroke: "nombre", strokeWidth: 2}),
+    Plot.dot(serie, {x: "anio", y: "valor", fill: "nombre", r: 3,
+                     title: d => `${d.nombre} ${d.anio}\n` +
+                       (esPorcentaje.has(indicador)
+                         ? (d.valor * 100).toFixed(1) + "%"
+                         : esMonto.has(indicador)
+                           ? (d.valor / 1e12).toFixed(2) + " billones"
+                           : d.valor.toFixed(2)) +
+                       `\nfuente: ${d.fuente}`}),
+    Plot.text(
+      serie.filter(d => d.anio === Math.max(...serie.map(x => x.anio))),
+      {x: "anio", y: "valor", text: "nombre", dx: 8, textAnchor: "start", fontSize: 10}
+    )
+  ]
+})
+```
+
+```{ojs}
+// Descarga sin archivo en el servidor: el CSV se arma en el navegador con lo que
+// esté seleccionado, así que siempre coincide con lo que muestra el gráfico.
+aCsv = filas => {
+  const cols = Object.keys(filas[0]);
+  const celda = v => /[",\n]/.test(String(v))
+    ? '"' + String(v).split('"').join('""') + '"'
+    : v;
+  return [cols.join(","), ...filas.map(f => cols.map(c => celda(f[c])).join(","))].join("\n");
+}
+
+descargar = (filas, nombre) => htl.html`<a download=${nombre}
+  href=${URL.createObjectURL(new Blob([aCsv(filas)], {type: "text/csv;charset=utf-8"}))}
+  >${nombre}</a>`
+
+htl.html`<p style="margin:1rem 0">Descargar:
+  ${descargar(serie, "seleccion.csv")} ·
+  ${descargar(datos.filter(d => seleccion.includes(d.nombre)), "empresas-seleccionadas.csv")} ·
+  ${descargar(datos, "indicadores.csv")}
+</p>`
+```
+
+Los estados financieros cubren la década 2009-2019 para las dos sociedades trabajadas
+en la tesis. Extender el intervalo y sumar el resto de los grupos económicos es
+justamente el objeto del proyecto.
+
+## Cobertura y procedencia
+
+```{r cobertura}
+#| echo: false
+ind |>
+  summarise(
+    desde = min(anio), hasta = max(anio),
+    anios = n_distinct(anio),
+    fuentes = paste(sort(unique(fuente)), collapse = ", "),
+    .by = c(nombre, grupo)
+  ) |>
+  arrange(grupo, nombre) |>
+  knitr::kable(col.names = c("Empresa", "Grupo", "Desde", "Hasta", "Años", "Fuente"))
+```
+
+- **`xbrl`** — estados financieros presentados a la CMF, procesados por
+  `scripts/fuentes/parse_xbrl.py`. Es la fuente primaria y la que llega más atrás.
+
+## Definición de los indicadores
+
+| Indicador | Cálculo | Lectura |
+|---|---|---|
+| Patrimonio real | `Equity` deflactado por IPC | Acumulación patrimonial descontada la inflación |
+| Margen de utilidad bruta | `GrossProfit / Revenue` | Excedente antes de gastos de administración |
+| Margen de utilidad neta | `ProfitLoss / Revenue` | Excedente final por peso vendido |
+| ROA | `ProfitLoss / Assets` | Rentabilidad del capital total |
+| ROE | `ProfitLoss atribuible / Equity atribuible` | Rentabilidad para la controladora |
+| Rotación de activos | `Revenue / Assets` | Productividad del capital: ventas por peso invertido |
+| Excedente sobre capital | `GrossProfit / Equity` | Excedente bruto por peso de patrimonio |
+
+Los montos están en pesos de diciembre de 2025, deflactados con el IPC empalmado del
+Banco Central. Los flujos (ingresos, utilidad) corresponden al ejercicio anual
+acumulado; los stocks (activos, patrimonio) al cierre de diciembre.
+
+::: {.callout-note}
+## Pendiente
+
+La productividad laboral en sentido estricto —valor agregado por trabajador— necesita la
+dotación de cada empresa, que no está en los tags XBRL y sí en las memorias anuales, en
+PDF y con un formato distinto por sociedad hasta que la NCG 461 lo uniformó en 2022. Por
+ahora la productividad se aproxima por el lado del capital, con la rotación de activos y
+el excedente sobre patrimonio.
+:::

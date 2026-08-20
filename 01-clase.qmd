@@ -1,0 +1,252 @@
+---
+title: "1. Estructura de la clase capitalista chilena"
+subtitle: "Hechos estilizados sobre la diferenciación del campo empresarial"
+---
+
+```{r setup}
+#| include: false
+source("R/setup.R")
+```
+
+## 1.1 Fuerza de trabajo ocupada según categoría en el empleo
+
+Encuesta Suplementaria de Ingresos (ESI), INE. Estimaciones ponderadas por el
+factor de expansión calibrado, con diseño muestral estratificado.
+
+```{r cise-datos}
+#| include: false
+cise <- readr::read_csv("datos/cise.csv", show_col_types = FALSE) |> recortar()
+ultimo_cise <- max(cise$anio)
+etiquetas <- cise |> filter(anio %in% unique(c(2010, 2015, CORTE, ultimo_cise)))
+```
+
+### Evolución absoluta
+
+```{r cise-absoluto}
+#| label: fig-cise-absoluto
+#| fig-cap: "Personas ocupadas según categoría en el empleo."
+ggplot(cise, aes(anio, frecuencias, colour = categoria)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.6) +
+  geom_text(
+    data = etiquetas, aes(label = fmt_miles(frecuencias)),
+    vjust = -1, size = 2.8, show.legend = FALSE, family = FAM
+  ) +
+  anios +
+  scale_y_continuous(labels = fmt_miles, expand = expansion(mult = c(0.05, 0.12))) +
+  scale_colour_brewer(palette = "Set1") +
+  labs(
+    x = "Año", y = "Personas", colour = "Categoría:",
+    caption = sprintf("Elaboración propia con base en ESI 2010-%s (INE).", ultimo_cise)
+  )
+```
+
+### Composición relativa
+
+```{r cise-area}
+#| label: fig-cise-area
+#| fig-cap: "Distribución relativa de la fuerza de trabajo ocupada."
+ggplot(cise, aes(anio, proporcion, fill = categoria)) +
+  geom_area(position = "stack", alpha = 0.9, colour = "black", linewidth = 0.2) +
+  scale_x_continuous(breaks = breaks_width(2), expand = expansion(0)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(0)) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(
+    x = "Año", y = "Participación", fill = "Categoría:",
+    caption = sprintf("Elaboración propia con base en ESI 2010-%s (INE).", ultimo_cise)
+  )
+```
+
+La proporción de empleadores pasa de
+`r sprintf("%.1f%%", 100 * cise$proporcion[cise$anio == 2010 & cise$categoria == "Empleador"])`
+en 2010 a
+`r sprintf("%.1f%%", 100 * cise$proporcion[cise$anio == ultimo_cise & cise$categoria == "Empleador"])`
+en `r ultimo_cise`, mientras el trabajo asalariado se mantiene en torno a tres cuartos de la
+fuerza de trabajo ocupada.
+
+## 1.2 Distribución de empresas según personalidad jurídica
+
+Servicio de Impuestos Internos, estadísticas de empresas por año comercial.
+
+```{r sii-datos}
+#| include: false
+load("datos/SII/SII-2022.RData")
+
+total <- datos_total |>
+  transmute(anio = as.integer(`Año Comercial`), empresas = `Número de empresas`) |>
+  recortar()
+
+tipo <- datos_genero |>
+  mutate(tipo = case_when(
+    genero %in% c("Masculino", "Femenino") ~ "Empresa individual",
+    genero == "Persona Jurídica y otros" ~ "Personalidad jurídica"
+  )) |>
+  group_by(anio = as.integer(year), tipo) |>
+  summarise(empresas = sum(N), .groups = "drop") |>
+  recortar()
+
+rango_sii <- range(total$anio)
+```
+
+La serie disponible cubre `r rango_sii[1]`-`r rango_sii[2]`.
+
+### Cantidad de empresas
+
+```{r sii-cantidad}
+#| label: fig-sii-cantidad
+#| fig-cap: "Número de empresas informantes por año comercial."
+ggplot(total, aes(anio, empresas)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.6) +
+  anios +
+  scale_y_continuous(labels = fmt_miles) +
+  labs(
+    x = "Año comercial", y = "Empresas",
+    caption = "Elaboración propia con base en estadísticas del SII."
+  )
+```
+
+### Composición por personalidad jurídica
+
+```{r sii-tipo}
+#| label: fig-sii-tipo
+#| fig-cap: "Empresas según personalidad jurídica, participación relativa."
+ggplot(tipo, aes(anio, empresas, fill = tipo)) +
+  geom_col(position = "fill", width = 0.9) +
+  anios +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(0)) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    x = "Año comercial", y = "Participación", fill = NULL,
+    caption = "Elaboración propia con base en estadísticas del SII."
+  )
+```
+
+## 1.3 Organización de la propiedad
+
+Encuesta Longitudinal de Empresas (ELE), ronda 2019. Resultados ponderados por el
+factor de expansión transversal.
+
+```{r ele-datos}
+#| include: false
+library(srvyr)
+ele <- readRDS("datos/ele/ele_2019.rds")
+dis <- ele |> as_survey_design(weights = fe_t)
+
+propiedad <- dis |>
+  group_by(grupo) |>
+  summarise(n = survey_total()) |>
+  select(-n_se) |>
+  mutate(freq = n / sum(n))
+
+patrimonio <- dis |>
+  group_by(grupo) |>
+  summarise(patrimonio = survey_total(patrim_2019)) |>
+  select(-patrimonio_se) |>
+  mutate(freq = patrimonio / sum(patrimonio))
+```
+
+### Empresas según organización de la propiedad
+
+```{r ele-propiedad}
+#| label: fig-ele-propiedad
+#| fig-cap: "Distribución de empresas según organización de la propiedad, 2019."
+ggplot(propiedad, aes(grupo, freq, label = percent(freq, accuracy = 0.1))) +
+  geom_col(fill = "grey30") +
+  geom_text(vjust = 1.4, colour = "white", size = 3, family = FAM) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    x = "Organización de la propiedad", y = "Empresas",
+    caption = "Elaboración propia con base en ELE 2019."
+  )
+```
+
+### Patrimonio según organización de la propiedad
+
+El contraste entre ambos gráficos es el hecho estilizado central: un grupo reducido
+de empresas concentra una fracción del patrimonio muy superior a su peso numérico.
+
+```{r ele-patrimonio}
+#| label: fig-ele-patrimonio
+#| fig-cap: "Distribución del patrimonio según organización de la propiedad, 2019."
+ggplot(patrimonio, aes(grupo, freq, label = percent(freq, accuracy = 0.1))) +
+  geom_col(fill = "#003f88") +
+  geom_text(vjust = 1.4, colour = "white", size = 3, family = FAM) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    x = "Organización de la propiedad", y = "Patrimonio",
+    caption = "Elaboración propia con base en ELE 2019."
+  )
+```
+
+```{r ele-tabla}
+#| label: tbl-ele
+#| tbl-cap: "Empresas y patrimonio según organización de la propiedad, 2019."
+propiedad |>
+  select(grupo, empresas = n, part_empresas = freq) |>
+  left_join(
+    patrimonio |> select(grupo, patrimonio, part_patrimonio = freq),
+    by = "grupo"
+  ) |>
+  mutate(
+    empresas = fmt_miles(empresas),
+    patrimonio = fmt_miles(patrimonio),
+    across(starts_with("part_"), \(x) percent(x, accuracy = 0.1))
+  ) |>
+  knitr::kable(col.names = c(
+    "Organización", "Empresas", "% empresas", "Patrimonio", "% patrimonio"
+  ))
+```
+
+### Análisis de correspondencias múltiples
+
+Modelo Burt con variables suplementarias, ajustado sobre ELE 2019. Las dos primeras
+dimensiones ordenan el campo empresarial por organización y escala.
+
+```{r mca}
+#| label: fig-mca
+#| fig-cap: "Estructura del campo empresarial chileno, 2019. ACM, plano 1-2."
+#| fig-width: 9
+#| fig-height: 7
+library(ggrepel)
+
+modelo <- readRDS("datos/ele/mca-ele19-burt-sup.rds")
+vars <- readRDS("datos/ele/vars-mca-ele19-burt-sup.rds")
+
+cats <- apply(vars, 2, \(x) nlevels(as.factor(x)))
+
+mca_df <- data.frame(modelo$colcoord, variable = rep(names(cats), cats)) |>
+  mutate(
+    variable = recode(variable,
+      ciiu = "Rama", exporta = "Comercio exterior", grupo = "Grupo económico",
+      patrimonio = "Patrimonio", sindicato = "Sindicato",
+      trabajo = "Tamaño empleo", ventas = "Tamaño ventas"
+    ),
+    variable = factor(variable, levels = c(
+      "Rama", "Comercio exterior", "Grupo económico", "Patrimonio",
+      "Sindicato", "Tamaño empleo", "Tamaño ventas"
+    )),
+    etiqueta = modelo$levelnames
+  )
+
+paleta <- c("#c8abed", "#ee4266", "#003f88", "#cd0f82", "#908d89", "#a89175", "#047146")
+
+ggplot(mca_df, aes(X1, X2)) +
+  geom_hline(yintercept = 0, colour = "gray70") +
+  geom_vline(xintercept = 0, colour = "gray70") +
+  geom_point(aes(colour = variable), alpha = 0.5, size = 2) +
+  geom_text_repel(
+    aes(colour = variable, label = etiqueta),
+    size = 3.2, show.legend = FALSE, family = FAM, fontface = "bold",
+    box.padding = 0.5, max.overlaps = Inf, min.segment.length = 0,
+    direction = "both", nudge_y = 0.2
+  ) +
+  scale_colour_manual(values = paleta) +
+  labs(
+    x = sprintf("Dimensión 1: Organización y gran escala (%s%%)", signif(modelo$inertia.e[1] * 100, 3)),
+    y = sprintf("Dimensión 2: Escala meso y micro (%s%%)", signif(modelo$inertia.e[2] * 100, 3)),
+    colour = NULL,
+    caption = sprintf("Elaboración propia con base en ELE 2019. N = %s casos.", fmt_miles(nrow(vars)))
+  ) +
+  theme(legend.position = "right")
+```
